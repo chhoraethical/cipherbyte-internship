@@ -1,0 +1,98 @@
+import tkinter as tk
+from tkinter import messagebox
+import random
+
+class MastermindGame:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Mastermind Game")
+        self.root.geometry("400x300")
+
+        self.label = tk.Label(root, text="Welcome to Mastermind!", font=("Helvetica", 16))
+        self.label.pack(pady=10)
+
+        self.instructions_label = tk.Label(root, text="Player 1, set a 5-digit number:", font=("Helvetica", 12))
+        self.instructions_label.pack()
+
+        self.entry = tk.Entry(root, font=("Helvetica", 12))
+        self.entry.pack(pady=10)
+
+        self.submit_button = tk.Button(root, text="Set Number", command=self.set_number)
+        self.submit_button.pack()
+
+        self.result_label = tk.Label(root, text="", font=("Helvetica", 12))
+        self.result_label.pack(pady=10)
+
+        self.guess_label = tk.Label(root, text="Player 2, enter your guess:", font=("Helvetica", 12))
+        self.guess_label.pack()
+
+        self.guess_entry = tk.Entry(root, font=("Helvetica", 12))
+        self.guess_entry.pack(pady=10)
+
+        self.guess_button = tk.Button(root, text="Submit Guess", command=self.submit_guess)
+        self.guess_button.pack()
+
+        self.num_attempts = 0
+        self.secret_number = None
+
+    def set_number(self):
+        try:
+            number = int(self.entry.get())
+            if 10000 <= number <= 99999:
+                self.secret_number = str(number)
+                self.entry.config(state="disabled")
+                self.submit_button.config(state="disabled")
+                self.instructions_label.config(text="Number set successfully. Player 2, start guessing!")
+                self.result_label.config(text="")
+            else:
+                messagebox.showerror("Error", "Please enter a 5-digit number.")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number.")
+
+    def submit_guess(self):
+        if self.secret_number is None:
+            messagebox.showwarning("Warning", "Player 1 has not set the number yet.")
+            return
+        
+        try:
+            guess = self.guess_entry.get()
+            if len(guess) != 5 or not guess.isdigit():
+                messagebox.showerror("Error", "Please enter a 5-digit number.")
+                return
+            
+            self.num_attempts += 1
+
+            if guess == self.secret_number:
+                messagebox.showinfo("Congratulations!", f"Player 2 guessed the number {self.secret_number} in {self.num_attempts} attempts and is crowned Mastermind!")
+                self.reset_game()
+            else:
+                matches = self.get_matching_digits(self.secret_number, guess)
+                if matches:
+                    self.result_label.config(text=f"Digits in correct positions: {matches}")
+                else:
+                    self.result_label.config(text="No digits in correct positions. Try again!")
+
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number.")
+
+    def get_matching_digits(self, secret, guess):
+        matches = []
+        for i in range(5):
+            if secret[i] == guess[i]:
+                matches.append(guess[i])
+        return matches
+
+    def reset_game(self):
+        self.secret_number = None
+        self.num_attempts = 0
+        self.entry.config(state="normal")
+        self.entry.delete(0, tk.END)
+        self.submit_button.config(state="normal")
+        self.instructions_label.config(text="Player 1, set a 5-digit number:")
+        self.result_label.config(text="")
+        self.guess_entry.delete(0, tk.END)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = MastermindGame(root)
+    root.mainloop()
